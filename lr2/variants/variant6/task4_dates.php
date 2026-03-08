@@ -1,9 +1,5 @@
 <?php
-/**
- * Завдання 4: Різниця дат
- * * Оновлено: додано розрахунок тижнів та днів
- * Дати за замовчуванням: 25-12-2023 та 15-08-2024
- */
+
 require_once __DIR__ . '/layout.php';
 
 function dateDifferenceDetails(string $date1, string $date2): array|false
@@ -18,7 +14,6 @@ function dateDifferenceDetails(string $date1, string $date2): array|false
     $interval = $d1->diff($d2);
     $totalDays = $interval->days;
     
-    // Розрахунок тижнів та залишку днів
     $weeks = floor($totalDays / 7);
     $remainingDays = $totalDays % 7;
 
@@ -51,7 +46,6 @@ function getWeekdayUkrainian(string $date): string
     return $days[$d->format('l')] ?? '';
 }
 
-// Вхідні дани з вашого прикладу
 $date1 = $_POST['date1'] ?? '25-12-2023';
 $date2 = $_POST['date2'] ?? '15-08-2024';
 $submitted = isset($_POST['date1']);
