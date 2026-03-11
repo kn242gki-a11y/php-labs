@@ -14,7 +14,7 @@ class RegformController extends PageController
             if (empty($errors)) {
                 $_SESSION['reg_success'] = true;
                 $_SESSION['reg_data'] = [
-                    'login' => $old['login'],
+                    'login' => is_string($old['login'] ?? '') ? trim($old['login']) : '',
                 ];
                 $this->redirect('regform/done');
                 return;
