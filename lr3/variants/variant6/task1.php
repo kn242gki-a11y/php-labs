@@ -1,37 +1,27 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 require_once __DIR__ . '/layout.php';
+require_once __DIR__ . '/Programmer.php';
 
-if (!class_exists('Programmer')) {
-    class Programmer {
-        public $name;
-        public $language;
-        public $level;
-    }
-}
+$programmer1 = new Programmer();
+$programmer1->name = 'Віктор Юрченко';
+$programmer1->language = 'PHP';
+$programmer1->level = 'Senior';
 
-$prog1 = new Programmer();
-$prog1->name = 'Віктор Юрченко';
-$prog1->language = 'PHP';
-$prog1->level = 'Senior';
+$programmer2 = new Programmer();
+$programmer2->name = 'Катерина Ковальчук';
+$programmer2->language = 'JavaScript';
+$programmer2->level = 'Middle';
 
-$prog2 = new Programmer();
-$prog2->name = 'Катерина Ковальчук';
-$prog2->language = 'JavaScript';
-$prog2->level = 'Middle';
-
-$prog3 = new Programmer();
-$prog3->name = 'Денис Хоменко';
-$prog3->language = 'Python';
-$prog3->level = 'Junior';
+$programmer3 = new Programmer();
+$programmer3->name = 'Денис Хоменко';
+$programmer3->language = 'Python';
+$programmer3->level = 'Junior';
 
 $programmers = [
-    ['obj' => $prog1, 'avatar' => 'avatar-indigo', 'initial' => 'В'],
-    ['obj' => $prog2, 'avatar' => 'avatar-green', 'initial' => 'К'],
-    ['obj' => $prog3, 'avatar' => 'avatar-amber', 'initial' => 'Д'],
+    ['obj' => $programmer1, 'avatar' => 'avatar-indigo', 'initial' => 'В'],
+    ['obj' => $programmer2, 'avatar' => 'avatar-green', 'initial' => 'К'],
+    ['obj' => $programmer3, 'avatar' => 'avatar-amber', 'initial' => 'Д'],
 ];
 
 ob_start();
@@ -43,13 +33,15 @@ ob_start();
 </div>
 
 <div class="code-block">
-    <span class="code-comment">// Створення об'єкта</span><br>
-    <span class="code-variable">$prog1</span> = <span class="code-keyword">new</span> <span class="code-class">Programmer</span>();<br>
-    <span class="code-variable">$prog1</span>->name = <span class="code-string">'Віктор Юрченко'</span>;
+    <span class="code-comment">// Приклад створення одного з об'єктів</span><br>
+    <span class="code-variable">$programmer1</span> = <span class="code-keyword">new</span> <span class="code-class">Programmer</span>();<br>
+    <span class="code-variable">$programmer1</span><span class="code-arrow">-></span><span class="code-method">name</span> = <span class="code-string">'Віктор Юрченко'</span>;<br>
+    <span class="code-variable">$programmer1</span><span class="code-arrow">-></span><span class="code-method">language</span> = <span class="code-string">'PHP'</span>;<br>
+    <span class="code-variable">$programmer1</span><span class="code-arrow">-></span><span class="code-method">level</span> = <span class="code-string">'Senior'</span>;
 </div>
 
 <div class="section-divider">
-    <span class="section-divider-text">Результат виводу</span>
+    <span class="section-divider-text">Результат: 3 об'єкти Programmer</span>
 </div>
 
 <div class="users-grid">
@@ -82,9 +74,4 @@ ob_start();
 
 <?php
 $content = ob_get_clean();
-
-if (function_exists('renderVariantLayout')) {
-    renderVariantLayout($content, 'Завдання 1', 'task1-body');
-} else {
-    echo $content;
-}
+renderVariantLayout($content, 'Завдання 1: Класи та об\'єкти', 'task1-body');
