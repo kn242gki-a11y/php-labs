@@ -1,28 +1,19 @@
 <?php
-/**
- * Завдання 2: Методи об'єкта
- * Клас Programmer та метод getInfo()
- */
 
 require_once __DIR__ . '/layout.php';
 
-// --- Визначення класу ---
 class Programmer
 {
     public string $name;
     public string $language;
     public string $level;
 
-    /**
-     * Метод getInfo() повертає рядок з інформацією про програміста
-     */
     public function getInfo(): string
     {
         return "Програміст: {$this->name}, Мова: {$this->language}, Рівень: {$this->level}";
     }
 }
 
-// --- Логіка створення об'єктів ---
 $programmer1 = new Programmer();
 $programmer1->name = 'Віктор Юрченко';
 $programmer1->language = 'PHP';
