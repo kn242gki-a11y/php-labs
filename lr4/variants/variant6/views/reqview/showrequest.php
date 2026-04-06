@@ -9,7 +9,7 @@ $method = $method ?? 'GET';
 
 <div class="reqview-grid">
     <div class="reqview-section">
-        <h2>📝 Тестова форма пацієнта</h2>
+        <h2>Тестова форма пацієнта</h2>
         <p>Надішліть POST-запит, щоб побачити, як дані потрапляють у масив <code>$_POST</code>:</p>
         
         <form method="POST" action="index.php?route=reqview/showrequest&source=debug_tool" class="form">
