@@ -125,6 +125,225 @@ class FolderController extends PageController
         return $folders;
     }
 
+    public function action_browse(): void
+    {
+        $message = '';
+        $error = '';
+        $authenticated = false;
+        $login = '';
+        $userDir = '';
+        $subfolder = '';
+        $files = [];
+        $subfolders = [];
+
+        if ($this->request->isPost() && !isset($_GET['folder'])) {
+            $login = trim($this->request->post('login', ''));
+            $password = trim($this->request->post('password', ''));
+
+            if ($login === '' || $password === '') {
+                $error = 'Логін та пароль є обов\'язковими.';
+            } else {
+                $userDir = $this->usersDir . '/' . $login;
+                $hashFile = $userDir . '/.password';
+
+                if (!file_exists($hashFile)) {
+                    $error = 'Цей каталог не існує.';
+                } elseif (!password_verify($password, file_get_contents($hashFile))) {
+                    $error = 'Невірний пароль.';
+                } else {
+                    $authenticated = true;
+                    $_SESSION['folder_login'] = $login;
+                    $_SESSION['folder_auth'] = true;
+                }
+            }
+        } elseif (isset($_SESSION['folder_auth']) && isset($_SESSION['folder_login'])) {
+            $authenticated = true;
+            $login = $_SESSION['folder_login'];
+            $userDir = $this->usersDir . '/' . $login;
+        }
+
+        if ($authenticated && $userDir) {
+            $subfolder = trim($this->request->get('folder', ''));
+
+            // Security: prevent directory traversal
+            if ($subfolder && !preg_match('/^[a-zA-Z0-9_-]+$/', $subfolder)) {
+                $error = 'Невірна назва підпапки.';
+                $subfolder = '';
+            }
+
+            if ($subfolder) {
+                $folderPath = $userDir . '/' . $subfolder;
+                if (!is_dir($folderPath)) {
+                    $error = 'Папка не знайдена.';
+                } else {
+                    // List files in subfolder
+                    $items = glob($folderPath . '/*');
+                    foreach ($items as $item) {
+                        if (is_file($item)) {
+                            $files[] = [
+                                'name' => basename($item),
+                                'size' => filesize($item),
+                                'modified' => filemtime($item),
+                            ];
+                        }
+                    }
+                    usort($files, fn($a, $b) => $b['modified'] - $a['modified']);
+                }
+            } else {
+                // List subfolders
+                $subDirs = glob($userDir . '/*', GLOB_ONLYDIR);
+                if ($subDirs) {
+                    foreach ($subDirs as $subDir) {
+                        $name = basename($subDir);
+                        if ($name !== '.' && $name !== '..' && !str_starts_with($name, '.')) {
+                            $fileCount = count(glob($subDir . '/*', GLOB_BRACE));
+                            $subfolders[] = [
+                                'name' => $name,
+                                'files' => $fileCount,
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+
+        // Handle logout
+        if (isset($_GET['logout'])) {
+            unset($_SESSION['folder_auth']);
+            unset($_SESSION['folder_login']);
+            $message = 'Вихід виконано.';
+            $authenticated = false;
+        }
+
+        // Handle file upload
+        if ($authenticated && $subfolder && $this->request->isPost() && isset($_FILES['file'])) {
+            $file = $_FILES['file'];
+            if ($file['error'] === UPLOAD_ERR_OK) {
+                $folderPath = $userDir . '/' . $subfolder;
+                $fileName = basename($file['name']);
+
+                // Sanitize filename
+                $fileName = preg_replace('/[^a-zA-Z0-9._-]/', '_', $fileName);
+
+                if (strlen($fileName) > 255) {
+                    $fileName = substr($fileName, 0, 255);
+                }
+
+                $targetPath = $folderPath . '/' . $fileName;
+
+                if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+                    $message = "Файл \"{$fileName}\" завантажено успішно!";
+                } else {
+                    $error = 'Помилка завантаження файлу.';
+                }
+            } else {
+                $error = 'Помилка завантаження: ' . $this->getUploadErrorMessage($file['error']);
+            }
+        }
+
+        // Handle file deletion
+        if ($authenticated && $subfolder && isset($_GET['delete'])) {
+            $fileName = trim($_GET['delete']);
+            if ($fileName && preg_match('/^[a-zA-Z0-9._-]+$/', $fileName)) {
+                $filePath = $userDir . '/' . $subfolder . '/' . $fileName;
+
+                if (file_exists($filePath) && is_file($filePath)) {
+                    if (unlink($filePath)) {
+                        $message = "Файл \"{$fileName}\" видалено.";
+                        // Reload file list
+                        header('Location: index.php?route=folder/browse&folder=' . urlencode($subfolder));
+                        exit;
+                    }
+                }
+            }
+        }
+
+        $this->render('folder/browse', [
+            'authenticated' => $authenticated,
+            'login' => $login,
+            'message' => $message,
+            'error' => $error,
+            'subfolder' => $subfolder,
+            'files' => $files,
+            'subfolders' => $subfolders,
+        ], 'Перегляд каталогу');
+    }
+
+    public function action_download(): void
+    {
+        // Check authentication
+        if (!isset($_SESSION['folder_auth']) || !isset($_SESSION['folder_login'])) {
+            http_response_code(403);
+            echo 'Доступ заборонено.';
+            exit;
+        }
+
+        $login = $_SESSION['folder_login'];
+        $subfolder = trim($this->request->get('folder', ''));
+        $fileName = trim($this->request->get('file', ''));
+
+        // Security validation
+        if (!$subfolder || !preg_match('/^[a-zA-Z0-9_-]+$/', $subfolder)) {
+            http_response_code(400);
+            echo 'Невірна папка.';
+            exit;
+        }
+
+        if (!$fileName || !preg_match('/^[a-zA-Z0-9._-]+$/', $fileName)) {
+            http_response_code(400);
+            echo 'Невірна назва файлу.';
+            exit;
+        }
+
+        $filePath = $this->usersDir . '/' . $login . '/' . $subfolder . '/' . $fileName;
+
+        // Additional security check: ensure file is within user directory
+        if (!file_exists($filePath) || !is_file($filePath)) {
+            http_response_code(404);
+            echo 'Файл не знайдено.';
+            exit;
+        }
+
+        // Ensure it's in the right directory (no directory traversal)
+        $realPath = realpath($filePath);
+        $userDir = realpath($this->usersDir . '/' . $login);
+        if (!$userDir || strpos($realPath, $userDir) !== 0) {
+            http_response_code(403);
+            echo 'Доступ заборонено.';
+            exit;
+        }
+
+        // Send file
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . basename($fileName) . '"');
+        header('Content-Length: ' . filesize($filePath));
+        readfile($filePath);
+        exit;
+    }
+
+    private function getUploadErrorMessage(int $code): string
+    {
+        return match ($code) {
+            UPLOAD_ERR_INI_SIZE => 'Розмір файлу перевищує максимальний.',
+            UPLOAD_ERR_FORM_SIZE => 'Розмір файлу перевищує максимальний.',
+            UPLOAD_ERR_PARTIAL => 'Файл завантажено частково.',
+            UPLOAD_ERR_NO_FILE => 'Файл не вибрано.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Тимчасова папка недоступна.',
+            UPLOAD_ERR_CANT_WRITE => 'Не вдалося записати файл на диск.',
+            default => 'Невідома помилка.',
+        };
+    }
+
+    protected function formatBytes(int $size, int $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $size = max($size, 0);
+        $pow = floor(($size ? log($size) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $size /= (1 << (10 * $pow));
+        return round($size, $precision) . ' ' . $units[$pow];
+    }
+
     private function deleteDirectory(string $dir): void
     {
         $items = new RecursiveIteratorIterator(

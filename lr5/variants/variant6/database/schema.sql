@@ -1,4 +1,4 @@
--- Users table (auth module)
+
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     login VARCHAR(50) NOT NULL UNIQUE,
@@ -13,27 +13,87 @@ CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Recipes table (CRUD module — Кулінарний блог)
-CREATE TABLE IF NOT EXISTS recipes (
+CREATE TABLE IF NOT EXISTS animals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title VARCHAR(150) NOT NULL,
-    category VARCHAR(50) DEFAULT '',
-    cooking_time INTEGER DEFAULT 0,
-    servings INTEGER DEFAULT 1,
-    ingredients TEXT DEFAULT '',
-    instructions TEXT DEFAULT '',
+    name VARCHAR(100) NOT NULL,
+    species VARCHAR(50) NOT NULL,
+    breed VARCHAR(100) DEFAULT '',
+    age INTEGER DEFAULT 0,
+    owner VARCHAR(150) NOT NULL,
+    microchip VARCHAR(50) DEFAULT '',
+    weight DECIMAL(5,2) DEFAULT 0,
+    health_status VARCHAR(50) DEFAULT 'здорова',
+    last_visit DATE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Seed recipes
-INSERT INTO recipes (title, category, cooking_time, servings, ingredients, instructions) VALUES
-    ('Борщ класичний', 'Перші страви', 90, 6, 'Буряк — 2 шт, Капуста — 300г, Картопля — 3 шт, Морква — 1 шт, Цибуля — 1 шт, Томатна паста — 2 ст.л., Мясо — 500г', 'Зварити мясний бульйон. Обсмажити буряк з морквою та цибулею. Додати картоплю, капусту, засмажку. Варити 20 хв.'),
-    ('Вареники з картоплею', 'Другі страви', 60, 4, 'Борошно — 400г, Яйце — 1 шт, Вода — 200мл, Картопля — 500г, Цибуля — 2 шт, Сіль, перець', 'Замісити тісто. Зварити та розімяти картоплю. Обсмажити цибулю, змішати з пюре. Ліпити вареники, варити 5 хв.'),
-    ('Сирники', 'Десерти', 30, 3, 'Сир кисломолочний — 500г, Яйце — 1 шт, Цукор — 3 ст.л., Борошно — 4 ст.л., Ванілін', 'Змішати сир, яйце, цукор, борошно. Сформувати сирники. Обсмажити на олії з обох боків до золотистого кольору.'),
-    ('Олівє', 'Салати', 40, 6, 'Картопля — 4 шт, Морква — 2 шт, Яйця — 4 шт, Ковбаса — 300г, Горошок — 1 банка, Огірки мариновані — 3 шт, Майонез', 'Зварити овочі та яйця. Нарізати кубиками. Змішати з горошком та майонезом.'),
-    ('Млинці з мясом', 'Другі страви', 50, 4, 'Борошно — 250г, Молоко — 500мл, Яйця — 2 шт, Фарш — 400г, Цибуля — 1 шт, Сіль, перець', 'Замісити тісто для млинців. Спекти тонкі млинці. Обсмажити фарш з цибулею. Начинити млинці, обсмажити.'),
-    ('Деруни', 'Другі страви', 35, 3, 'Картопля — 6 шт, Яйце — 1 шт, Борошно — 2 ст.л., Цибуля — 1 шт, Сіль, перець, олія', 'Натерти картоплю та цибулю на тертці. Додати яйце, борошно, сіль. Обсмажити на олії з обох боків.'),
-    ('Компот з сухофруктів', 'Напої', 25, 8, 'Сухофрукти — 300г, Цукор — 100г, Вода — 3л, Лимон — пів шт', 'Промити сухофрукти. Залити водою, довести до кипіння. Додати цукор та лимон. Варити 15 хв. Дати настоятися.'),
-    ('Голубці', 'Другі страви', 80, 6, 'Капуста — 1 качан, Фарш — 500г, Рис — 150г, Морква — 1 шт, Цибуля — 1 шт, Томатна паста — 3 ст.л.', 'Відварити рис до напівготовності. Змішати з фаршем та обсмаженою цибулею. Загорнути в капустяні листки. Тушкувати з томатним соусом 40 хв.'),
-    ('Шарлотка з яблуками', 'Десерти', 45, 8, 'Яйця — 4 шт, Цукор — 200г, Борошно — 200г, Яблука — 4 шт, Корица — 1 ч.л.', 'Збити яйця з цукром. Додати борошно. Нарізати яблука. Викласти тісто у форму, зверху яблука. Випікати 180°C, 35 хв.'),
-    ('Вінегрет', 'Салати', 30, 4, 'Буряк — 2 шт, Картопля — 3 шт, Морква — 2 шт, Огірки мариновані — 3 шт, Горошок — 1 банка, Олія — 3 ст.л.', 'Зварити овочі. Нарізати кубиками. Змішати з горошком та олією. Посолити.');
+CREATE TABLE IF NOT EXISTS health_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    animal_id INTEGER NOT NULL,
+    visit_date DATE NOT NULL,
+    diagnosis TEXT DEFAULT '',
+    treatment TEXT DEFAULT '',
+    vet_notes TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (animal_id) REFERENCES animals(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS vaccinations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    animal_id INTEGER NOT NULL,
+    vaccine_name VARCHAR(100) NOT NULL,
+    vaccination_date DATE NOT NULL,
+    next_due_date DATE,
+    vet_name VARCHAR(100),
+    notes TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (animal_id) REFERENCES animals(id) ON DELETE CASCADE
+);
+
+INSERT INTO animals (name, species, breed, age, owner, health_status) VALUES
+    ('Барон', 'Собака', 'Лабрадор', 3, 'Іван Петренко', 'здорова'),
+    ('Мурка', 'Кіт', 'Сіамська', 2, 'Марія Іваненко', 'здорова'),
+    ('Кеша', 'Птах', 'Папуга', 1, 'Олексій Сидоров', 'здорова'),
+    ('Шарік', 'Собака', 'Бульдог', 5, 'Анна Коваленко', 'потребує опіки'),
+    ('Рижик', 'Кіт', 'Персидська', 4, 'Дмитро Мельник', 'здорова');
+
+CREATE TABLE IF NOT EXISTS emergency_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    animal_name VARCHAR(100) NOT NULL,
+    problem TEXT NOT NULL,
+    urgency VARCHAR(20) NOT NULL,
+    status VARCHAR(20) DEFAULT 'new',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS home_visits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address TEXT NOT NULL,
+    animal_name VARCHAR(100) NOT NULL,
+    problem TEXT DEFAULT '',
+    visit_date DATE NOT NULL,
+    visit_time TIME NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS volunteers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    position VARCHAR(50) NOT NULL,
+    experience TEXT DEFAULT '',
+    availability VARCHAR(100) DEFAULT 'Вихідні',
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO volunteers (name, email, phone, position, experience, availability, status) VALUES
+    ('Марія Коваль', 'maria@email.com', '+380 97 123 4567', 'Опікун тварин', 'Досвід 3 роки', 'Вихідні', 'approved'),
+    ('Іван Петренко', 'ivan@email.com', '+380 99 234 5678', 'Організатор подій', 'Досвід 5 років', 'Будні', 'approved'),
+    ('Олена Іванівна', 'olena@email.com', '+380 95 345 6789', 'Соціальний працівник', 'Досвід 2 роки', 'Гнучкий графік', 'approved');

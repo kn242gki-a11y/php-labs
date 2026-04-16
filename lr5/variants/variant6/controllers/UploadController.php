@@ -19,6 +19,21 @@ class UploadController extends PageController
 
     public function action_index(): void
     {
+        $this->handleUpload('general', 'Завантаження зображень', 'Зображення завантажено!');
+    }
+
+    public function action_emergency(): void
+    {
+        $this->handleUpload('emergency', 'Швидка ветеринарна допомога', 'Фото надіслано для екстреної консультації. Ми зв\'яжемося з вами найближчим часом.');
+    }
+
+    public function action_home(): void
+    {
+        $this->handleUpload('home', 'Виїзд ветеринара додому', 'Фото надіслано для замовлення виїзду додому. Очікуйте дзвінка для підтвердження.');
+    }
+
+    private function handleUpload(string $type, string $title, string $successMessage): void
+    {
         $message = '';
         $error = '';
 
@@ -44,7 +59,7 @@ class UploadController extends PageController
                 $dest = $this->uploadDir . '/' . $safeName;
 
                 if (move_uploaded_file($file['tmp_name'], $dest)) {
-                    $message = 'Зображення "' . htmlspecialchars($file['name']) . '" завантажено!';
+                    $message = $successMessage;
                 } else {
                     $error = 'Не вдалося зберегти файл.';
                 }
@@ -57,7 +72,9 @@ class UploadController extends PageController
             'images' => $images,
             'message' => $message,
             'error' => $error,
-        ], 'Завантаження зображень');
+            'title' => $title,
+            'type' => $type,
+        ], $title);
     }
 
     private function getImages(): array
