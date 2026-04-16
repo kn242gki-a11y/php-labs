@@ -1,46 +1,71 @@
 <div class="page-home">
-    <h1>Кулінарний блог</h1>
-    <p class="page-home__subtitle">Варіант 30 &mdash; Лабораторна робота №5</p>
-    <p class="text-muted">Збірка українських рецептів. Файлова гостьова книга, галерея фото страв, CRUD рецептів через PDO, авторизація.</p>
-
-    <h2>Файли</h2>
-    <div class="card-grid">
-        <div class="card">
-            <h3 class="card__title">Гостьова книга</h3>
-            <p class="card__text">Залишайте відгуки про рецепти. Коментарі зберігаються у текстовому файлі.</p>
-            <a href="index.php?route=guestbook/index" class="btn btn--small">Відгуки</a>
-        </div>
-
-        <div class="card">
-            <h3 class="card__title">Фото страв</h3>
-            <p class="card__text">Завантажуйте фото приготовлених страв. Галерея кулінарних шедеврів.</p>
-            <a href="index.php?route=upload/index" class="btn btn--small">Галерея</a>
-        </div>
-
-        <div class="card">
-            <h3 class="card__title">Каталоги кухарів</h3>
-            <p class="card__text">Персональні папки для кухарів з колекціями відео, музики та фото.</p>
-            <a href="index.php?route=folder/create" class="btn btn--small">Каталоги</a>
+    <div class="hero">
+        <h1>Ветеринарна клініка "Добра лапа"</h1>
+        <p class="hero__subtitle">Варіант 6 &mdash; Лабораторна робота №5</p>
+        <p class="hero__description">Професійна допомога вашим улюбленцям. Система управління тваринами, гостьова книга, галерея фото та електронний запис.</p>
+        <div class="hero__info">
+            <div class="hero__item">
+                <strong>Графік роботи:</strong> Пн-Пт 9:00-18:00, Сб 10:00-16:00
+            </div>
+            <div class="hero__item">
+                <strong>Телефон:</strong> +380 123 456 789
+            </div>
+            <div class="hero__item">
+                <strong>Адреса:</strong> вул. Ветеринарна, 10, Київ
+            </div>
         </div>
     </div>
 
-    <h2>База даних</h2>
+    <h2>Наші послуги</h2>
     <div class="card-grid">
         <div class="card">
-            <h3 class="card__title">Рецепти (CRUD)</h3>
-            <p class="card__text">Колекція рецептів з інгредієнтами, часом приготування та інструкціями. PDO + SQLite.</p>
-            <a href="index.php?route=recipe/list" class="btn btn--small">До рецептів</a>
+            <h3 class="card__title">Запис до лікаря</h3>
+            <p class="card__text">Запишіться на прийом до ветеринара онлайн. Вкажіть дату, час та причину візиту.</p>
+            <a href="index.php?route=guestbook/index" class="btn btn--small">Записатися</a>
         </div>
 
         <div class="card">
-            <h3 class="card__title">Акаунт кухаря</h3>
-            <p class="card__text">Реєстрація, вхід, профіль. Хешування паролів, сесійна авторизація.</p>
+            <h3 class="card__title">Швидка ветеринарна допомога</h3>
+            <p class="card__text">Екстрена допомога тваринам 24/7. Опишіть проблему та отримайте можливо найшвидшої допомоги.</p>
+            <a href="index.php?route=service/emergency" class="btn btn--small">Подати запит</a>
+        </div>
+
+        <div class="card">
+            <h3 class="card__title">Виїзд ветеринара додому</h3>
+            <p class="card__text">Викличте ветеринара на дім у зручний час. Виїзди вся Київ.</p>
+            <a href="index.php?route=service/home_visit" class="btn btn--small">Замовити виїзд</a>
+        </div>
+
+        <div class="card">
+            <h3 class="card__title">Волонтерство</h3>
+            <p class="card__text">Приєднуйтесь до нашої команди волонтерів. Допомагайте тваринам і розвивайте себе.</p>
+            <a href="index.php?route=volunteer/index" class="btn btn--small">Волонтери</a>
+        </div>
+
+        <div class="card">
+            <h3 class="card__title">Каталоги власників</h3>
+            <p class="card__text">Персональні папки для власників тварин з колекціями відео, музики та фото.</p>
+            <a href="index.php?route=folder/browse" class="btn btn--small">📁 Каталоги</a>
+        </div>
+    </div>
+
+    <h2>Електронний кабінет</h2>
+    <div class="card-grid">
+        <div class="card">
+            <h3 class="card__title">База тварин</h3>
+            <p class="card__text">Електронний запис ваших тварин з усією інформацією про лікування та догляд.</p>
+            <a href="index.php?route=animal/list" class="btn btn--small">До тварин</a>
+        </div>
+
+        <div class="card">
+            <h3 class="card__title">Особистий кабінет</h3>
+            <p class="card__text">Реєстрація, вхід до системи, управління профілем власника.</p>
             <a href="index.php?route=auth/login" class="btn btn--small">Увійти</a>
         </div>
 
         <div class="card">
             <h3 class="card__title">Налаштування</h3>
-            <p class="card__text">Колір фону (сесія) та привітання (cookie). Успадковано з ЛР4.</p>
+            <p class="card__text">Персональні налаштування інтерфейсу та привітання.</p>
             <a href="index.php?route=settings/color" class="btn btn--small">Налаштування</a>
         </div>
     </div>

@@ -16,10 +16,12 @@ $currentRoute = $_GET['route'] ?? 'index/main';
 
 $navItems = [
     'index/main' => 'Головна',
-    'guestbook/index' => 'Гостьова книга',
-    'upload/index' => 'Завантаження',
-    'folder/create' => 'Каталоги',
-    'recipe/list' => 'Рецепти',
+    'guestbook/index' => 'Запис до лікаря',
+    'service/emergency' => 'Екстрена допомога',
+    'service/home_visit' => 'Виїзд додому',
+    'volunteer/index' => 'Волонтери',
+    'folder/browse' => 'Каталоги',
+    'animal/list' => 'Тварини',
     'settings/color' => 'Налаштування',
 ];
 ?>
@@ -28,7 +30,7 @@ $navItems = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle ?? 'Кулінарний блог') ?> — Кулінарний блог (v30)</title>
+    <title><?= htmlspecialchars($pageTitle ?? 'Ветеринарна клініка') ?> — Ветеринарна клініка (v6)</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body style="background-color: <?= htmlspecialchars($bgColor) ?>">
@@ -36,7 +38,7 @@ $navItems = [
     <header class="header">
         <div class="container">
             <div class="header__inner">
-                <a href="index.php" class="header__logo">Кулінарний блог</a>
+                <a href="index.php" class="header__logo">Ветеринарна клініка</a>
                 <div class="header__right">
                     <?php if ($greetingText !== ''): ?>
                         <span class="header__greeting"><?= $greetingText ?></span>
