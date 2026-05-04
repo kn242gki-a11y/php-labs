@@ -28,7 +28,7 @@ class Application {
     private function show404(string $message): void {
         http_response_code(404);
         $view = new PageView();
-        $view->setTitle('404 — Не знайдено');
+        $view->setTitle('404 — Сторінку не знайдено — Ветклініка «Лапки»');
         $view->render('layout/404', ['message' => $message]);
     }
 }
