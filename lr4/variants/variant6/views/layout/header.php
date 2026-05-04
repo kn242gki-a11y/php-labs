@@ -15,7 +15,6 @@ $currentRoute = $_GET['route'] ?? 'index/main';
 $navItems = [
     'index/main'          => 'Головна',
     'regform/form'        => 'Реєстрація',
-    'reqview/showrequest' => 'Параметри',
     'settings/color'      => 'Колір фону',
     'settings/greeting'   => 'Мій профіль',
 ];
