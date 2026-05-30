@@ -37,4 +37,4 @@ $content = $squares . '
     <div class="circles-counter">🟥 Квадратів: ' . $n . ' (по 5 у рядку)</div>
     <p class="circles-info">Цикл For + CSS Grid створили рівну сітку 🔄</p>';
 
-renderVariantLayout($content, 'Завдання 6', 'task7-circles-body');
+renderVariantLayout($content, 'Завдання 6.2', 'task7-circles-body');
