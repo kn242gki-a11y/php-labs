@@ -10,6 +10,91 @@ class ServiceController extends PageController
         $this->db = Database::getInstance();
     }
 
+    public function action_index(): void
+    {
+        $services = [
+            [
+                'name' => 'Прийом ветеринара',
+                'description' => 'Огляд тварини, консультація та рекомендації щодо лікування.',
+                'price' => '500 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'Виїзд ветеринара додому',
+                'description' => 'Огляд і допомога тварині у зручному для вас місці.',
+                'price' => 'від 800 грн',
+                'route' => 'service/home_visit',
+                'button' => 'Замовити виїзд',
+            ],
+            [
+                'name' => 'Вакцинація',
+                'description' => 'Планова вакцинація та консультація щодо щеплень.',
+                'price' => 'від 350 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'Діагностика та аналізи',
+                'description' => 'Загальні та біохімічні аналізи для точної діагностики.',
+                'price' => 'від 450 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'УЗД-обстеження',
+                'description' => 'Безпечне ультразвукове обстеження внутрішніх органів.',
+                'price' => 'від 600 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'Стоматологія',
+                'description' => 'Огляд ротової порожнини, чистка зубів та лікування.',
+                'price' => 'від 700 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'Хірургічні операції',
+                'description' => 'Планові операції під наглядом досвідчених ветеринарів.',
+                'price' => 'від 2 000 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'Стерилізація та кастрація',
+                'description' => 'Безпечне проведення процедури та післяопераційний догляд.',
+                'price' => 'від 1 500 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'Чіпування',
+                'description' => 'Встановлення мікрочипа та реєстрація тварини.',
+                'price' => 'від 400 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'Дерматологічна консультація',
+                'description' => 'Діагностика алергій, шкірних захворювань та проблем із шерстю.',
+                'price' => 'від 550 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+            [
+                'name' => 'Грумінг',
+                'description' => 'Стрижка, гігієнічний догляд, чистка вух та кігтів.',
+                'price' => 'від 450 грн',
+                'route' => 'guestbook/index',
+                'button' => 'Записатися',
+            ],
+        ];
+
+        $this->render('service/index', ['services' => $services], 'Послуги');
+    }
+
     public function action_emergency(): void
     {
         $message = '';
@@ -48,16 +133,41 @@ class ServiceController extends PageController
         }
 
         $requests = [];
-        if (isset($_SESSION['user_id'])) {
+        $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin'
+            || ($_SESSION['user_login'] ?? '') === 'admin';
+        if ($isAdmin) {
             $stmt = $this->db->query('SELECT * FROM emergency_requests ORDER BY urgency DESC, created_at DESC LIMIT 10');
             $requests = $stmt->fetchAll() ?: [];
         }
 
         $this->render('service/emergency', [
             'requests' => $requests,
+            'isAdmin' => $isAdmin,
             'message' => $message,
             'errors' => $errors,
         ], 'Швидка ветеринарна допомога');
+    }
+
+    public function action_emergency_delete(): void
+    {
+        $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin'
+            || ($_SESSION['user_login'] ?? '') === 'admin';
+
+        if (!$isAdmin) {
+            http_response_code(403);
+            return;
+        }
+
+        if ($this->request->isPost()) {
+            $id = (int)$this->request->post('id', 0);
+            if ($id > 0) {
+                $stmt = $this->db->prepare('DELETE FROM emergency_requests WHERE id = :id');
+                $stmt->execute([':id' => $id]);
+                $_SESSION['flash_success'] = 'Запит на екстрену допомогу видалено.';
+            }
+        }
+
+        $this->redirect('service/emergency');
     }
 
     public function action_home_visit(): void

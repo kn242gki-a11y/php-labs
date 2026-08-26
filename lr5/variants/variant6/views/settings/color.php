@@ -1,13 +1,13 @@
 <?php
 $colors = $colors ?? [];
 $currentColor = $currentColor ?? '#f9fafb';
+$fontSize = $fontSize ?? 'normal';
+$highContrast = $highContrast ?? false;
 $message = $message ?? '';
 $error = $error ?? '';
 ?>
 
-<h1>Колір фону (Сесії)</h1>
-
-<p>Оберіть колір фону сторінки. Значення зберігається в <code>$_SESSION</code> та діє на всіх сторінках до закриття браузера.</p>
+<h1>Колір фону</h1>
 
 <?php if ($error !== ''): ?>
     <div class="alert alert--error"><?= htmlspecialchars($error) ?></div>
@@ -29,9 +29,23 @@ $error = $error ?? '';
         <?php endforeach; ?>
     </div>
 
+    <div class="form__row settings-options">
+        <div class="form__group">
+            <label for="font_size" class="form__label">Розмір тексту</label>
+            <select id="font_size" name="font_size" class="form__select">
+                <option value="normal" <?= $fontSize === 'normal' ? 'selected' : '' ?>>Звичайний</option>
+                <option value="large" <?= $fontSize === 'large' ? 'selected' : '' ?>>Збільшений</option>
+            </select>
+        </div>
+
+        <label class="form__checkbox settings-options__checkbox">
+            <input type="checkbox" name="high_contrast" value="1" <?= $highContrast ? 'checked' : '' ?>>
+            <span>Підвищений контраст</span>
+        </label>
+    </div>
+
     <div class="form__actions">
         <button type="submit" class="btn">Зберегти колір</button>
     </div>
 </form>
 
-<p class="text-muted text-muted--mt">Модуль успадковано з ЛР4. Також доступне <a href="index.php?route=settings/greeting">привітання через Cookie</a>.</p>

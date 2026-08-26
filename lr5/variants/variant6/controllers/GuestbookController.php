@@ -65,6 +65,10 @@ class GuestbookController extends PageController
                 }
             }
 
+            if (empty($errors) && $this->isAppointmentTaken($appointment_date, $appointment_time)) {
+                $errors['appointment_time'] = 'Цей час уже зайнятий. Оберіть іншу дату або час.';
+            }
+
             if (empty($errors)) {
                 $name = str_replace(["\r", "\n"], ' ', $name);
                 $phone = str_replace(["\r", "\n"], ' ', $phone);
@@ -84,13 +88,55 @@ class GuestbookController extends PageController
             }
         }
 
-        $appointments = $this->readAppointments();
+        $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin'
+            || ($_SESSION['user_login'] ?? '') === 'admin';
+        $appointments = $isAdmin ? $this->readAppointments() : [];
 
         $this->render('guestbook/index', [
             'appointments' => $appointments,
+            'isAdmin' => $isAdmin,
             'message' => $message,
             'errors' => $errors,
         ], 'Запис до ветеринара');
+    }
+
+    public function action_delete(): void
+    {
+        $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin'
+            || ($_SESSION['user_login'] ?? '') === 'admin';
+
+        if (!$isAdmin) {
+            if (!isset($_SESSION['user_id'])) {
+                $this->redirect('auth/login');
+            }
+            http_response_code(403);
+            return;
+        }
+
+        if ($this->request->isPost()) {
+            $date = trim((string)$this->request->post('appointment_date', ''));
+            $time = trim((string)$this->request->post('appointment_time', ''));
+            $appointments = $this->readAppointments();
+            $remaining = [];
+            $deleted = false;
+
+            foreach ($appointments as $appointment) {
+                if (!$deleted
+                    && $appointment['appointment_date'] === $date
+                    && $appointment['appointment_time'] === $time) {
+                    $deleted = true;
+                    continue;
+                }
+                $remaining[] = json_encode($appointment, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+            }
+
+            if ($deleted) {
+                file_put_contents($this->filePath, implode('', array_reverse($remaining)), LOCK_EX);
+                $_SESSION['flash_success'] = 'Запис на прийом видалено.';
+            }
+        }
+
+        $this->redirect('guestbook/index');
     }
 
     private function readAppointments(): array
@@ -111,5 +157,17 @@ class GuestbookController extends PageController
         }
 
         return array_reverse($appointments);
+    }
+
+    private function isAppointmentTaken(string $date, string $time): bool
+    {
+        foreach ($this->readAppointments() as $appointment) {
+            if ($appointment['appointment_date'] === $date
+                && $appointment['appointment_time'] === $time) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

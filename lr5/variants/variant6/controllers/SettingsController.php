@@ -20,10 +20,16 @@ class SettingsController extends PageController
 
         if ($this->request->isPost()) {
             $color = $this->request->post('bg_color', '#f9fafb');
+            $fontSize = $this->request->post('font_size', 'normal');
+            $highContrast = $this->request->post('high_contrast', '') === '1';
 
             if (array_key_exists($color, $this->availableColors)) {
                 $_SESSION['bg_color'] = $color;
-                $message = 'Колір фону збережено!';
+                if (in_array($fontSize, ['normal', 'large'], true)) {
+                    $_SESSION['font_size'] = $fontSize;
+                }
+                $_SESSION['high_contrast'] = $highContrast;
+                $message = 'Налаштування збережено!';
             } else {
                 $error = 'Невідомий колір.';
             }
@@ -32,6 +38,8 @@ class SettingsController extends PageController
         $this->render('settings/color', [
             'colors' => $this->availableColors,
             'currentColor' => $_SESSION['bg_color'] ?? '#f9fafb',
+            'fontSize' => $_SESSION['font_size'] ?? 'normal',
+            'highContrast' => $_SESSION['high_contrast'] ?? false,
             'message' => $message,
             'error' => $error,
         ], 'Колір фону');

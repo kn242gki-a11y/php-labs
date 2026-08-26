@@ -1,5 +1,6 @@
 <?php
 $requests = $requests ?? [];
+$isAdmin = $isAdmin ?? false;
 $message = $message ?? '';
 $errors = $errors ?? [];
 ?>
@@ -89,6 +90,7 @@ $errors = $errors ?? [];
                 <th>Тварина</th>
                 <th>Рівень терміновості</th>
                 <th>Статус</th>
+                <?php if ($isAdmin): ?><th>Дія</th><?php endif; ?>
             </tr>
         </thead>
         <tbody>
@@ -110,6 +112,14 @@ $errors = $errors ?? [];
                         ?>
                     </td>
                     <td><?= htmlspecialchars(ucfirst($r['status'])) ?></td>
+                    <?php if ($isAdmin): ?>
+                        <td>
+                            <form method="POST" action="index.php?route=service/emergency_delete" onsubmit="return confirm('Видалити цей запит?')">
+                                <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
+                                <button type="submit" class="btn btn--small btn--danger">Видалити</button>
+                            </form>
+                        </td>
+                    <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
         </tbody>

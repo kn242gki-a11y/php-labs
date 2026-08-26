@@ -12,7 +12,17 @@ class AnimalController extends PageController
 
     public function action_list(): void
     {
-        $stmt = $this->db->query('SELECT * FROM animals ORDER BY id DESC');
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
+        if ($this->isAdmin()) {
+            $stmt = $this->db->prepare('SELECT * FROM animals ORDER BY id DESC');
+            $stmt->execute();
+        } else {
+            $stmt = $this->db->prepare('SELECT * FROM animals WHERE owner_id = :owner_id ORDER BY id DESC');
+            $stmt->execute([':owner_id' => (int)$_SESSION['user_id']]);
+        }
         $animals = $stmt->fetchAll();
 
         $this->render('animal/list', [
@@ -22,8 +32,7 @@ class AnimalController extends PageController
 
     public function action_create(): void
     {
-        if (!isset($_SESSION['user_id'])) {
-            $this->redirect('auth/login');
+        if (!$this->requireAdmin()) {
             return;
         }
 
@@ -36,8 +45,8 @@ class AnimalController extends PageController
 
             if (empty($errors)) {
                 $stmt = $this->db->prepare(
-                    'INSERT INTO animals (name, species, breed, age, owner)
-                     VALUES (:name, :species, :breed, :age, :owner)'
+                    'INSERT INTO animals (name, species, breed, age, owner, owner_id)
+                     VALUES (:name, :species, :breed, :age, :owner, :owner_id)'
                 );
                 $stmt->execute([
                     ':name' => trim($old['name']),
@@ -45,6 +54,7 @@ class AnimalController extends PageController
                     ':breed' => trim($old['breed'] ?? ''),
                     ':age' => (int)($old['age'] ?? 0),
                     ':owner' => trim($old['owner']),
+                    ':owner_id' => (int)$_SESSION['user_id'],
                 ]);
 
                 $_SESSION['flash_success'] = 'Тварину "' . trim($old['name']) . '" додано!';
@@ -61,8 +71,7 @@ class AnimalController extends PageController
 
     public function action_edit(): void
     {
-        if (!isset($_SESSION['user_id'])) {
-            $this->redirect('auth/login');
+        if (!$this->requireAdmin()) {
             return;
         }
 
@@ -73,9 +82,7 @@ class AnimalController extends PageController
             return;
         }
 
-        $stmt = $this->db->prepare('SELECT * FROM animals WHERE id = :id');
-        $stmt->execute([':id' => $id]);
-        $animal = $stmt->fetch();
+        $animal = $this->findAnimalForUser($id);
 
         if (!$animal) {
             $this->redirect('animal/list');
@@ -118,8 +125,7 @@ class AnimalController extends PageController
 
     public function action_delete(): void
     {
-        if (!isset($_SESSION['user_id'])) {
-            $this->redirect('auth/login');
+        if (!$this->requireAdmin()) {
             return;
         }
 
@@ -127,8 +133,15 @@ class AnimalController extends PageController
             $id = (int)$this->request->post('id', 0);
 
             if ($id > 0) {
-                $stmt = $this->db->prepare('DELETE FROM animals WHERE id = :id');
-                $stmt->execute([':id' => $id]);
+                $sql = $this->isAdmin()
+                    ? 'DELETE FROM animals WHERE id = :id'
+                    : 'DELETE FROM animals WHERE id = :id AND owner_id = :owner_id';
+                $stmt = $this->db->prepare($sql);
+                $params = [':id' => $id];
+                if (!$this->isAdmin()) {
+                    $params[':owner_id'] = (int)$_SESSION['user_id'];
+                }
+                $stmt->execute($params);
                 $_SESSION['flash_success'] = 'Тварину видалено!';
             }
         }
@@ -138,6 +151,10 @@ class AnimalController extends PageController
 
     public function action_detail(): void
     {
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
         $id = (int)$this->request->get('id', 0);
 
         if ($id <= 0) {
@@ -146,9 +163,7 @@ class AnimalController extends PageController
         }
 
         try {
-            $stmt = $this->db->prepare('SELECT * FROM animals WHERE id = :id');
-            $stmt->execute([':id' => $id]);
-            $animal = $stmt->fetch();
+            $animal = $this->findAnimalForUser($id);
 
             if (!$animal) {
                 $this->redirect('animal/list');
@@ -175,9 +190,18 @@ class AnimalController extends PageController
 
     public function action_health_add(): void
     {
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
         $animal_id = (int)$this->request->get('id', 0);
         
         if ($animal_id <= 0) {
+            $this->redirect('animal/list');
+            return;
+        }
+
+        if (!$this->findAnimalForUser($animal_id)) {
             $this->redirect('animal/list');
             return;
         }
@@ -230,9 +254,18 @@ class AnimalController extends PageController
 
     public function action_vaccination_add(): void
     {
+        if (!$this->requireAdmin()) {
+            return;
+        }
+
         $animal_id = (int)$this->request->get('id', 0);
         
         if ($animal_id <= 0) {
+            $this->redirect('animal/list');
+            return;
+        }
+
+        if (!$this->findAnimalForUser($animal_id)) {
             $this->redirect('animal/list');
             return;
         }
@@ -283,5 +316,64 @@ class AnimalController extends PageController
             'message' => $message,
             'errors' => $errors,
         ], 'Додати запис про щеплення');
+    }
+
+    private function requireAdmin(): bool
+    {
+        if (!isset($_SESSION['user_id'])) {
+            $this->redirect('auth/login');
+            return false;
+        }
+
+        if (!$this->isAdmin()) {
+            http_response_code(403);
+            $this->view->setTitle('Доступ заборонено');
+            $this->view->render('layout/404', [
+                'message' => 'Розділ «Тварини» доступний лише адміністратору.',
+            ]);
+            return false;
+        }
+
+        return true;
+    }
+
+    private function isAdmin(): bool
+    {
+        return ($_SESSION['user_role'] ?? '') === 'admin'
+            || ($_SESSION['user_login'] ?? '') === 'admin';
+    }
+
+    private function findAnimalForUser(int $id): ?array
+    {
+        $sql = $this->isAdmin()
+            ? 'SELECT * FROM animals WHERE id = :id'
+            : 'SELECT * FROM animals WHERE id = :id AND owner_id = :owner_id';
+        $stmt = $this->db->prepare($sql);
+        $params = [':id' => $id];
+        if (!$this->isAdmin()) {
+            $params[':owner_id'] = (int)$_SESSION['user_id'];
+        }
+        $stmt->execute($params);
+        $animal = $stmt->fetch();
+
+        return $animal ?: null;
+    }
+
+    private function validate(array $data): array
+    {
+        $errors = [];
+        if (trim((string)($data['name'] ?? '')) === '') {
+            $errors['name'] = 'Вкажіть кличку тварини.';
+        }
+        if (trim((string)($data['species'] ?? '')) === '') {
+            $errors['species'] = 'Вкажіть вид тварини.';
+        }
+        if (trim((string)($data['owner'] ?? '')) === '') {
+            $errors['owner'] = 'Вкажіть ПІБ власника.';
+        }
+        if (($data['age'] ?? '') !== '' && (!ctype_digit((string)$data['age']) || (int)$data['age'] > 100)) {
+            $errors['age'] = 'Вік має бути цілим числом від 0 до 100.';
+        }
+        return $errors;
     }
 }

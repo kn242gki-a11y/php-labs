@@ -13,14 +13,25 @@ class VolunteerController extends PageController
     public function action_index(): void
     {
         $volunteers = [];
+        $fundraisers = [];
         try {
             $stmt = $this->db->query('SELECT * FROM volunteers WHERE status = "approved" ORDER BY created_at DESC');
             $volunteers = $stmt->fetchAll() ?: [];
         } catch (PDOException $e) {
         }
 
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT * FROM fundraisers WHERE status = :status ORDER BY created_at DESC'
+            );
+            $stmt->execute([':status' => 'active']);
+            $fundraisers = $stmt->fetchAll() ?: [];
+        } catch (PDOException $e) {
+        }
+
         $this->render('volunteer/index', [
             'volunteers' => $volunteers,
+            'fundraisers' => $fundraisers,
         ], 'Волонтери');
     }
 
@@ -68,6 +79,57 @@ class VolunteerController extends PageController
             'message' => $message,
             'errors' => $errors,
         ], 'Стати волонтером');
+    }
+
+    public function action_donate(): void
+    {
+        $id = (int)$this->request->get('id', 0);
+        $stmt = $this->db->prepare('SELECT * FROM fundraisers WHERE id = :id AND status = :status');
+        $stmt->execute([':id' => $id, ':status' => 'active']);
+        $fundraiser = $stmt->fetch();
+
+        if (!$fundraiser) {
+            $this->redirect('volunteer/index');
+            return;
+        }
+
+        $errors = [];
+        if ($this->request->isPost()) {
+            $amount = trim((string)$this->request->post('amount', ''));
+            $normalizedAmount = str_replace(',', '.', $amount);
+
+            if ($amount === '' || !is_numeric($normalizedAmount) || (float)$normalizedAmount <= 0) {
+                $errors['amount'] = 'Вкажіть суму допомоги більше 0 грн.';
+            } elseif ((float)$normalizedAmount > 1000000) {
+                $errors['amount'] = 'Сума допомоги не може перевищувати 1 000 000 грн.';
+            }
+
+            if (empty($errors)) {
+                try {
+                    $stmt = $this->db->prepare(
+                        'UPDATE fundraisers
+                         SET collected_amount = MIN(target_amount, collected_amount + :amount)
+                         WHERE id = :id AND status = :status'
+                    );
+                    $stmt->execute([
+                        ':amount' => (float)$normalizedAmount,
+                        ':id' => $id,
+                        ':status' => 'active',
+                    ]);
+
+                    $_SESSION['flash_success'] = 'Дякуємо! Вашу допомогу додано до збору.';
+                    $this->redirect('volunteer/index');
+                    return;
+                } catch (PDOException $e) {
+                    $errors['general'] = 'Не вдалося зберегти допомогу. Спробуйте ще раз.';
+                }
+            }
+        }
+
+        $this->render('volunteer/donate', [
+            'fundraiser' => $fundraiser,
+            'errors' => $errors,
+        ], 'Допомогти тварині');
     }
 
     private function validateSignup(array $data): array

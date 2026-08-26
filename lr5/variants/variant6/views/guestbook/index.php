@@ -1,12 +1,11 @@
 <?php
 $appointments = $appointments ?? [];
+$isAdmin = $isAdmin ?? false;
 $message = $message ?? '';
 $errors = $errors ?? [];
 ?>
 
 <h1>Запис до ветеринара</h1>
-<p>Записи зберігаються у файлі <code>data/appointments.jsonl</code> (формат: JSON Lines).</p>
-
 <?php if ($message !== ''): ?>
     <div class="alert alert--success"><?= htmlspecialchars($message) ?></div>
 <?php endif; ?>
@@ -80,6 +79,7 @@ $errors = $errors ?? [];
     </div>
 </form>
 
+<?php if ($isAdmin): ?>
 <h2>Записи на прийом (<?= count($appointments) ?>)</h2>
 
 <?php if (empty($appointments)): ?>
@@ -94,6 +94,7 @@ $errors = $errors ?? [];
                 <th>Телефон</th>
                 <th>Тварина</th>
                 <th>Причина</th>
+                <th>Дія</th>
             </tr>
         </thead>
         <tbody>
@@ -105,8 +106,16 @@ $errors = $errors ?? [];
                     <td><?= htmlspecialchars($a['phone']) ?></td>
                     <td><?= htmlspecialchars($a['animal_name']) ?></td>
                     <td><?= htmlspecialchars($a['reason'] ?? '') ?></td>
+                    <td>
+                        <form method="POST" action="index.php?route=guestbook/delete" onsubmit="return confirm('Видалити цей запис?')">
+                            <input type="hidden" name="appointment_date" value="<?= htmlspecialchars($a['appointment_date']) ?>">
+                            <input type="hidden" name="appointment_time" value="<?= htmlspecialchars($a['appointment_time']) ?>">
+                            <button type="submit" class="btn btn--small btn--danger">Видалити</button>
+                        </form>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
+<?php endif; ?>
 <?php endif; ?>

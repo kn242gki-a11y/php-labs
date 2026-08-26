@@ -11,19 +11,25 @@ if ($greetingName !== '') {
 
 $isLoggedIn = isset($_SESSION['user_id']);
 $userLogin = $_SESSION['user_login'] ?? '';
+$isAdmin = ($_SESSION['user_role'] ?? '') === 'admin' || $userLogin === 'admin';
+$fontSizeClass = ($_SESSION['font_size'] ?? 'normal') === 'large' ? ' page-font-large' : '';
+$contrastClass = !empty($_SESSION['high_contrast']) ? ' page-high-contrast' : '';
 
 $currentRoute = $_GET['route'] ?? 'index/main';
 
 $navItems = [
     'index/main' => 'Головна',
+    'service/index' => 'Послуги',
     'guestbook/index' => 'Запис до лікаря',
     'service/emergency' => 'Екстрена допомога',
     'service/home_visit' => 'Виїзд додому',
     'volunteer/index' => 'Волонтери',
-    'folder/browse' => 'Каталоги',
-    'animal/list' => 'Тварини',
     'settings/color' => 'Налаштування',
 ];
+
+if ($isAdmin) {
+    $navItems['animal/list'] = 'Тварини';
+}
 ?>
 <!DOCTYPE html>
 <html lang="uk">
@@ -33,7 +39,7 @@ $navItems = [
     <title><?= htmlspecialchars($pageTitle ?? 'Ветеринарна клініка') ?> — Ветеринарна клініка (v6)</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body style="background-color: <?= htmlspecialchars($bgColor) ?>">
+<body class="<?= $fontSizeClass . $contrastClass ?>" style="background-color: <?= htmlspecialchars($bgColor) ?>">
     <a href="#main-content" class="skip-link">Перейти до вмісту</a>
     <header class="header">
         <div class="container">

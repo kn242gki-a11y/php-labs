@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     city VARCHAR(50) DEFAULT '',
     gender VARCHAR(10) DEFAULT '',
     about TEXT DEFAULT '',
+    role VARCHAR(20) DEFAULT 'user',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS animals (
     breed VARCHAR(100) DEFAULT '',
     age INTEGER DEFAULT 0,
     owner VARCHAR(150) NOT NULL,
+    owner_id INTEGER,
     microchip VARCHAR(50) DEFAULT '',
     weight DECIMAL(5,2) DEFAULT 0,
     health_status VARCHAR(50) DEFAULT 'здорова',
@@ -97,3 +99,20 @@ INSERT INTO volunteers (name, email, phone, position, experience, availability, 
     ('Марія Коваль', 'maria@email.com', '+380 97 123 4567', 'Опікун тварин', 'Досвід 3 роки', 'Вихідні', 'approved'),
     ('Іван Петренко', 'ivan@email.com', '+380 99 234 5678', 'Організатор подій', 'Досвід 5 років', 'Будні', 'approved'),
     ('Олена Іванівна', 'olena@email.com', '+380 95 345 6789', 'Соціальний працівник', 'Досвід 2 роки', 'Гнучкий графік', 'approved');
+
+CREATE TABLE IF NOT EXISTS fundraisers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    organizer_name VARCHAR(150) NOT NULL,
+    animal_name VARCHAR(100) NOT NULL,
+    title VARCHAR(150) NOT NULL,
+    description TEXT DEFAULT '',
+    target_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    collected_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO fundraisers (organizer_name, animal_name, title, description, target_amount, collected_amount, status) VALUES
+    ('Марія Коваль', 'Барон', 'Допомога на операцію Барону', 'Потрібні кошти на операцію та відновлення після травми.', 25000, 15750, 'active'),
+    ('Іван Петренко', 'Мурка', 'Лікування Мурки', 'Збір на обстеження, ліки та курс лікування.', 12000, 8400, 'active'),
+    ('Олена Іванівна', 'Рижик', 'Підтримка притулку', 'Допомога на харчування та вакцинацію тварин притулку.', 18000, 6300, 'active');
